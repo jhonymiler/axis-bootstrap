@@ -11,7 +11,7 @@ edit page/*.html|css        push to main
   cli/package.json ───► .github/workflows/deploy-page.yml
    (version source)            │
                                ▼
-                    sed `{{VERSION}}` → `2.1.0`
+                    sed `{{VERSION}}` → `2.2.0`
                                │
                                ▼
                     actions/deploy-pages → live site

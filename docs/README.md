@@ -29,7 +29,7 @@ The authoritative source for *how* AXIS works lives in the skills themselves:
 
 [`CHANGELOG.md`](../CHANGELOG.md) lists what shipped in each version.
 The features the comparison page references (F9–F15, F4C) all landed in
-CLI v2.1.0.
+CLI v2.2.0.
 
 ## Hosting these docs as a site
 
