@@ -23,3 +23,7 @@ cli/dist/
 
 # AXIS telemetry (local-only)
 .ai/telemetry.jsonl
+
+# Generated Cursor .mdc rules (derived from .ai/rules/*.md via sync-cursor-rules.sh)
+.cursor/rules/*.mdc
+.ai/rules/*.mdc

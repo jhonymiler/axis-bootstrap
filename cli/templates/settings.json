@@ -27,6 +27,16 @@
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/session-start.sh 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
@@ -34,6 +44,16 @@
           {
             "type": "command",
             "command": "bash scripts/constitutional-check.sh 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "bash scripts/validate-commit-msg.sh 2>/dev/null || true"
           }
         ]
       }
@@ -44,11 +64,22 @@
         "hooks": [
           {
             "type": "command",
+            "if": "Edit(.ai/**)",
             "command": "bash scripts/post-spec-edit.sh 2>/dev/null || true"
           },
           {
             "type": "command",
             "command": "bash scripts/post-code-change.sh 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/stop.sh 2>/dev/null || true"
           }
         ]
       }

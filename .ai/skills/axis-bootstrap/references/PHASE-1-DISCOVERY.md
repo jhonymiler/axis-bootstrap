@@ -198,4 +198,40 @@ Apply whenever the project uses version control or any task tracker (most projec
     - Release cadence (continuous, sprint, scheduled)
 ```
 
+### Sub-block 4B — Validation & Enforcement
+
+After capturing the governance answers above, ask how the user wants to **enforce** them. This drives Phase 3 harness decisions.
+
+```text
+22. How should commit messages be validated?
+    - Automated (commitlint, husky pre-commit hook, CI check) or manual review?
+    - Should the AI agent enforce the format before committing? (yes / no / ask first)
+
+23. How should PRs be validated before merge?
+    - Code review tools: GitHub Copilot Code Review, manual review, both?
+    - Required CI checks: build, tests, lint, type-check, security scan?
+    - Should the AI agent create a PR template (.github/PULL_REQUEST_TEMPLATE.md)?
+    - Custom PR checklist items? (e.g., "update docs", "add migration", "notify team")
+
+24. What formatting / linting enforcement do you prefer?
+    - Auto-format on save via hooks (PostToolUse)? Which formatter?
+    - Lint check before commit (pre-commit hook)? Which linter?
+    - CI-level enforcement only (no local hooks)?
+
+25. Are there project-specific rules the AI should always follow?
+    - Examples: "never modify database migrations", "always run seed after schema change",
+      "never deploy without changelog entry", "always update API docs on endpoint change"
+    - These become constitutional rules or custom rules in .ai/rules/
+```
+
+The answers to 22-25 determine:
+
+| Answer | Phase 3 artifact |
+| ------ | ---------------- |
+| commitlint / husky | Hook: `PreToolUse` commit validation script |
+| Copilot Code Review | `.ai/instructions/*.instructions.md` + symlink |
+| PR template | `.github/PULL_REQUEST_TEMPLATE.md` scaffolded |
+| Auto-format | Hook: `PostToolUse` format-file.sh |
+| Custom rules | `.ai/rules/` entries with appropriate `applyTo` |
+
 If the project does not use git or any tracker (rare — usually a solo content or research draft), skip this block entirely and note it in the Project Profile.

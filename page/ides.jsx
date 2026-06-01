@@ -19,17 +19,16 @@ const IDE_ICONS = {
       <path d="M5 12 a7 4 0 0 1 14 0" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   ),
-  "Aider": (
+  "Windsurf": (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-      <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M8 11 L11 14 L8 14" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M13 14 L16 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M4 16 Q8 8 12 12 Q16 16 20 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M4 20 Q8 12 12 16 Q16 20 20 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   ),
-  "Codeium": (
+  "Codex / Others": (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-      <path d="M5 9 L12 4 L19 9 L12 14 Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M5 15 L12 20 L19 15" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M8 12 L11 15 L16 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
 };
@@ -76,7 +75,7 @@ function IdesSection({ copy, motion }) {
             <div style={{ flex: 1 }} />
             <span className="chip mono" style={{ fontSize: 10.5, color: "var(--ok)", borderColor: "rgba(52, 211, 153, 0.3)", background: "rgba(52, 211, 153, 0.08)" }}>
               <span style={{ width: 5, height: 5, borderRadius: 999, background: "var(--ok)" }} />
-              symlinks → 1 source
+              .ai/ → native format per IDE
             </span>
           </div>
 
@@ -161,9 +160,9 @@ function IdesSection({ copy, motion }) {
 
               <div className="mono" style={{ marginTop: 22, fontSize: 11, color: "var(--ink-3)", lineHeight: 1.7 }}>
                 <div>$ readlink CLAUDE.md</div>
-                <div>./INSTRUCTIONS.md</div>
-                <div style={{ marginTop: 8 }}>$ readlink .cursor/rules</div>
-                <div>./INSTRUCTIONS.md</div>
+                <div>.ai/INSTRUCTIONS.md</div>
+                <div style={{ marginTop: 8 }}>$ ls .cursor/rules/</div>
+                <div>*.mdc (generated from .ai/)</div>
               </div>
             </div>
 

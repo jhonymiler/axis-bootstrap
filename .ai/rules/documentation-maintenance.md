@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "Documentation maintenance: keep docs in sync with code, curate STATE.md, detect doc drift"
+alwaysApply: true
 ---
 
 # Documentation Maintenance Protocol

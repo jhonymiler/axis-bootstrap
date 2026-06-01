@@ -46,6 +46,7 @@ const STRINGS = {
     aiTriggerText:
       'Load the axis-bootstrap skill (.ai/skills/axis-bootstrap/SKILL.md) and execute it on this project. Read the codebase first, then run all 5 phases with gates. Stop and ask between phases.',
     aiCleanup: '3. After the agent finishes Phase 5, run `axis cleanup` to remove the bootstrap skill (it is no longer needed — your project is now self-sufficient).',
+    aiCleanupAuto: '3. The agent will auto-remove the bootstrap skill after Phase 5 validation (Step 5.5). No manual cleanup needed.',
 
     // quick flow
     quickScaffolding: 'Scaffolding .ai/ structure',
@@ -130,6 +131,8 @@ const STRINGS = {
       'Carregue a skill axis-bootstrap (.ai/skills/axis-bootstrap/SKILL.md) e execute neste projeto. Leia o código primeiro, depois rode as 5 fases com gates. Pause e pergunte entre cada fase.',
     aiCleanup:
       '3. Quando o agente terminar a Phase 5, rode `axis cleanup` para remover a skill bootstrap (não é mais necessária — seu projeto agora é autossuficiente).',
+    aiCleanupAuto:
+      '3. O agente vai remover automaticamente a skill bootstrap após a validação da Phase 5 (Step 5.5). Nenhum cleanup manual necessário.',
 
     quickScaffolding: 'Criando estrutura .ai/',
     quickSpecReady: 'Spec layer pronta',

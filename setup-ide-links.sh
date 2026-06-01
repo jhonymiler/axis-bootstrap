@@ -36,7 +36,23 @@ ln -sfn ../.ai/skills          .claude/skills
 echo "→ Cursor (.cursor/)"
 mkdir -p .cursor
 ln -sfn ../.ai/skills          .cursor/skills
-[ -d .ai/rules ] && ln -sfn ../.ai/rules .cursor/rules || true
+# Cursor requires .mdc extension (not .md) for rules with specific frontmatter
+# (description, globs, alwaysApply). Plain .md files are IGNORED by Cursor.
+# Generate .mdc files from .ai/rules/*.md instead of symlinking.
+if [ -d .ai/rules ]; then
+  if [ -f scripts/sync-cursor-rules.sh ]; then
+    bash scripts/sync-cursor-rules.sh .ai/rules .cursor/rules
+  else
+    # Fallback: inline conversion when sync script is not available
+    mkdir -p .cursor/rules
+    for md in .ai/rules/*.md; do
+      [ -f "$md" ] || continue
+      base="$(basename "$md" .md)"
+      cp "$md" ".cursor/rules/${base}.mdc"
+    done
+    echo "  [cursor] copied $(ls .cursor/rules/*.mdc 2>/dev/null | wc -l) .mdc rules (basic copy)"
+  fi
+fi
 
 echo "→ Generic agents (.agents/)"
 mkdir -p .agents

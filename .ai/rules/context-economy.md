@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "Context economy: token budget discipline, confidence ladder, parallelism rules for efficient tool usage"
+alwaysApply: true
 ---
 
 # Context Economy
