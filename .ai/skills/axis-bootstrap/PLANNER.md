@@ -244,7 +244,7 @@ that Phase 1.5 (SPDD) itself was skipped. Otherwise the gate stands.
 
 ---
 
-## Phase 5 — Validation
+## Phase 5 — Validation & Auto-Cleanup
 
 **Loads:** [references/PHASE-5-VALIDATION.md](references/PHASE-5-VALIDATION.md)
 
@@ -256,10 +256,27 @@ that Phase 1.5 (SPDD) itself was skipped. Otherwise the gate stands.
 2. Calculate metrics (lines in INSTRUCTIONS, average SKILL.md size, rules count)
 3. Automated smoke tests (symlinks resolve, hooks execute)
 4. Generate handoff: list of files created + suggested next steps
+5. **Auto-cleanup** (Step 5.5 — see below)
+
+### Step 5.5 — Bootstrap Cleanup
+
+After all quality gates pass and the handoff report is presented, **remove the bootstrap meta-skill automatically**:
+
+```bash
+rm -rf .ai/skills/axis-bootstrap
+```
+
+**What is removed:** the `axis-bootstrap` skill bundle (PLANNER.md, PHASE-*.md, agents/discoverers, agents/challengers, agents/specialists, references/).
+
+**What stays:** all generated project skills, rules, docs, STATE.md, CONVENTIONS.md, settings.json, hooks, symlinks.
+
+**Rationale:** the bootstrap skill served its purpose — keeping it adds noise to the skills directory and wastes token budget when the agent lists available skills. The project is now self-sufficient.
+
+**If the CLI is available**, run `axis cleanup` (it does the same thing with a confirmation prompt). If not, the `rm -rf` above is equivalent.
 
 **Final gate:**
 
-> Present completed bootstrap report. List 3-5 actions suggested for the user to do next (e.g., "Create the first detailed skill for domain X", "Configure CI to validate symlinks").
+> Present completed bootstrap report. Confirm that the bootstrap skill was removed. List 3-5 actions suggested for the user to do next (e.g., "Create the first detailed skill for domain X", "Configure CI to validate symlinks").
 
 ---
 

@@ -1,6 +1,9 @@
 ---
 applyTo: "src/**"
 trigger: on-edit
+description: "Documentation sync: keep .ai/ docs aligned when source code structure changes"
+alwaysApply: false
+globs: "src/**"
 ---
 
 # Documentation Sync

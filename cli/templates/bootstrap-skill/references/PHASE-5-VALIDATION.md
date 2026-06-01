@@ -31,6 +31,9 @@ This phase also runs in standalone mode when the user asks to **audit an existin
 [ ] For software projects: at least 3 rules in .ai/rules/ with `applyTo`
 [ ] If Phase 1 Block 4 was answered: .ai/rules/workflow.md exists with the populated sections (PM tool, commits, branches, PRs)
 [ ] INSTRUCTIONS.md has a "Workflow & Tools" section pointing to rules/workflow.md (or block 4 was explicitly skipped)
+[ ] If Block 4B Q23 answered "yes" to PR template: .github/PULL_REQUEST_TEMPLATE.md exists
+[ ] If Block 4B Q22 answered "automated": scripts/validate-commit-msg.sh exists and is executable
+[ ] If Block 4B Q23 answered "Copilot Code Review": .ai/instructions/*.instructions.md exists (< 4000 chars each)
 [ ] At least 1 stub in .ai/docs/ (architecture.md, glossary.md, or equivalent)
 [ ] .ai/CONVENTIONS.md exists and contains symlink map
 [ ] .ai/docs/STATE.md exists with the 6 mandatory sections
@@ -125,6 +128,29 @@ Calculate and report:
 
 ---
 
+## Auto-Cleanup (Step 5.5)
+
+After all quality gates pass, **remove the bootstrap meta-skill** so the project is self-sufficient:
+
+```bash
+rm -rf .ai/skills/axis-bootstrap
+```
+
+**Removes:** the `axis-bootstrap` bundle (PLANNER, phases, discoverers, challengers, specialists, references). **Keeps:** all generated project-specific skills, rules, docs, STATE, CONVENTIONS, settings.json, hooks, symlinks.
+
+If the `axis` CLI is available, run `axis cleanup` instead (same result, with a confirmation prompt). Either way, the project no longer depends on the bootstrap skill.
+
+**Verify cleanup:**
+
+```bash
+# Must NOT exist after cleanup
+ls .ai/skills/axis-bootstrap 2>/dev/null && echo "CLEANUP FAILED" || echo "OK: bootstrap skill removed"
+# Must still exist
+ls .ai/INSTRUCTIONS.md .ai/CONVENTIONS.md .ai/docs/STATE.md
+```
+
+---
+
 ## Handoff to User
 
 Final message follows template in [PROMPT-TEMPLATE.md](../PROMPT-TEMPLATE.md#handoff-to-user). Structure:
@@ -140,6 +166,9 @@ Final message follows template in [PROMPT-TEMPLATE.md](../PROMPT-TEMPLATE.md#han
 - Continuity layer with STATE, CONVENTIONS
 - N symlinks distributing to <IDEs>
 - N hooks in settings.json
+
+### Cleanup
+- axis-bootstrap skill removed ✓ (project is self-sufficient)
 
 ### Metrics
 - INSTRUCTIONS.md: N lines (target 100-180) ✓

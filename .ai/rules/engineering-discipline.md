@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "Engineering discipline: think before coding, minimum viable change, surgical edits, verifiable completion"
+alwaysApply: true
 ---
 
 # Engineering Discipline

@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: on-stop
+description: "State curation: update STATE.md when decisions, blockers, or progress change during a session"
+alwaysApply: false
 ---
 
 # State Curation

@@ -227,20 +227,143 @@ Sub-agents enable smart delegation. The main agent **orchestrates**, sub-agents 
 
 ---
 
-## Step 4 — Symlinks by IDE
+## Step 4 — IDE-Specific Harness Configuration
 
-For each IDE declared in Phase 1, create symlinks. Use the script [setup-ide-links.sh in TEMPLATES.md](TEMPLATES.md#setup-ide-linkssh).
+Each IDE has different capabilities. Configure the harness layer per IDE declared in Phase 1. See [TEMPLATES.md → IDE Capability Reference](TEMPLATES.md#ide-capability-reference-from-official-documentation) for the full lookup table.
 
-**Principle:** the script is **idempotent** (`ln -sf` replaces without error). Can run as many times as needed.
+Key differences that affect harness generation:
 
-**Target folder by IDE:**
+| Capability | Claude Code | Cursor | GitHub Copilot | Windsurf |
+| ---------- | ----------- | ------ | -------------- | -------- |
+| Permissions (allow/deny/ask) | `settings.json` | None | None | None |
+| Hooks (25+ events) | `settings.json` hooks | None | GitHub Actions | None |
+| Rules dir | `.claude/rules/*.md` | **`.cursor/rules/*.mdc`** | `.github/instructions/*.instructions.md` | `.agents/rules/` |
+| Entry point | `CLAUDE.md` (auto-loaded) | `AGENTS.md` + `CLAUDE.md` (both auto-loaded) | `.github/copilot-instructions.md` | `AGENTS.md` |
+| Sub-agents | `.claude/agents/` | None (run inline) | None | None |
+| Code Review | Manual | Manual | Copilot Code Review | Manual |
 
-| IDE            | Where it looks for context                                 |
-| -------------- | ---------------------------------------------------------- |
-| Claude Code    | `.claude/`, `CLAUDE.md`                                    |
-| Cursor         | `.cursor/rules/`, `.cursor/skills/`, `AGENTS.md`           |
-| GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/` |
-| Windsurf       | `AGENTS.md`, `.agents/`                                    |
+**Critical format differences:**
+- **Cursor** requires `.mdc` extension with `description`/`globs`/`alwaysApply` frontmatter. Plain `.md` files are **ignored**.
+- **Copilot** requires `.instructions.md` extension with `applyTo` frontmatter. Supports `excludeAgent` field. Max 4000 chars per file.
+- **Claude Code** reads `.md` files from `.claude/rules/`. Frontmatter is optional.
+
+**AXIS unification:** `.ai/rules/*.md` is the single source of truth. Rules include both `applyTo`/`trigger` (Claude) and `description`/`alwaysApply` (Cursor) frontmatter fields. `setup-ide-links.sh` generates the IDE-specific format:
+- Claude: symlinks `.claude/rules/ → .ai/rules/`
+- Cursor: generates `.mdc` files via `scripts/sync-cursor-rules.sh`
+- Copilot: symlinks `.github/instructions/ → .ai/instructions/` (separate files, different format)
+
+### Step 4.1 — Claude Code (full harness)
+
+Claude Code has the richest harness support. Generate:
+
+1. **`.claude/settings.json`** — permissions + hooks (see Step 1 + Step 2)
+2. **Symlinks:** `.claude/CLAUDE.md`, `skills/`, `rules/`, `hooks/` → `.ai/`
+3. **Sub-agents:** install discoverers/specialists in `.claude/agents/`
+
+### Step 4.2 — Cursor (rules as `.mdc` + skills)
+
+Cursor reads `.cursor/rules/*.mdc` and `.cursor/skills/` for agent context. It does **not** support `settings.json`, hooks, or native sub-agents.
+
+**Critical:** Cursor requires the **`.mdc` extension** (Markdown Configuration). Plain `.md` files in `.cursor/rules/` are **ignored by the rules system**. The frontmatter format is also different from Claude Code.
+
+**What to generate:**
+
+1. **Skills symlink:** `.cursor/skills/` → `.ai/skills/`
+2. **Rules conversion:** run `scripts/sync-cursor-rules.sh` to generate `.cursor/rules/*.mdc` from `.ai/rules/*.md`
+3. **Root entries:** `AGENTS.md` + `CLAUDE.md` → `.ai/INSTRUCTIONS.md` (Cursor reads both natively)
+
+**Cursor `.mdc` frontmatter format** (from [official docs](https://cursor.com/docs/rules)):
+
+```markdown
+---
+description: "Session start protocol: read STATE.md before any substantive action"
+alwaysApply: true
+---
+# Rule content here
+```
+
+| Frontmatter field | Purpose | AXIS mapping |
+| ----------------- | ------- | ------------ |
+| `description` | Agent-friendly text for intelligent activation | Added to `.ai/rules/*.md` frontmatter |
+| `alwaysApply` | `true` = every conversation | `trigger: always` → `alwaysApply: true` |
+| `globs` | File patterns for scoped activation | `applyTo: "src/**"` → `globs: src/**` |
+
+**4 activation modes:**
+- **Always Apply** (`alwaysApply: true`) — universal standards
+- **Apply Intelligently** (`description` only, no globs) — agent decides relevance
+- **Apply to Specific Files** (`globs: "**/*.ts"`) — file-match triggered
+- **Manual** (no frontmatter) — user `@`-mentions the rule
+
+Since Cursor has no hook system, rules that depend on hooks (like `session-start.md` printing STATE) work as **passive reminders** — the agent reads the rule but there is no shell trigger.
+
+**What Cursor cannot do (document in CONVENTIONS.md):**
+- No permission enforcement (allow/deny/ask) — the agent has full access
+- No hooks (Pre/Post/Stop) — no auto-formatting, no destructive blocking
+- No native sub-agents — discoverers run inline/sequentially
+- Workaround: for teams using both Claude Code and Cursor, the `settings.json` harness protects Claude sessions while Cursor sessions rely on rules + agent discipline
+
+### Step 4.3 — GitHub Copilot (instructions + Code Review)
+
+GitHub Copilot reads two file types, both with a **4000-char hard limit per file**:
+
+**4.3.1 — Repo-wide instructions:**
+
+`.github/copilot-instructions.md` → symlink to `.ai/INSTRUCTIONS.md`. Ensure project purpose and accept/reject criteria appear in the **first 4000 chars** (don't bury them after the truncation point).
+
+**4.3.2 — Path-targeted instructions (Copilot Code Review):**
+
+Create only if user declared GitHub Copilot in Phase 1 **and** answered "yes" to PR validation via Copilot Code Review (Block 4B, Q23).
+
+```bash
+mkdir -p .ai/instructions
+```
+
+Generate `.ai/instructions/code-review.instructions.md` from the template in [TEMPLATES.md → Copilot Code Review](TEMPLATES.md#copilot-code-review--path-targeted-instructionsmd). Adapt:
+- `applyTo:` glob to match the project's source paths
+- Accept/reject criteria from Phase 1 interview
+- Security checks relevant to the stack
+
+Validate:
+
+```bash
+wc -c .ai/instructions/*.instructions.md   # each < 4000
+readlink .github/instructions              # → ../.ai/instructions
+```
+
+**4.3.3 — PR Template (conditional):**
+
+If the user wants a PR template (Block 4B, Q23), scaffold `.github/PULL_REQUEST_TEMPLATE.md`:
+
+```markdown
+## Summary
+<!-- What does this PR do? Link to ticket: PROJ-XXX -->
+
+## Changes
+- 
+
+## Test Plan
+- [ ] Unit tests pass
+- [ ] Integration tests pass (if applicable)
+<!-- Add custom checklist items from Block 4B Q23 -->
+
+## Screenshots
+<!-- If UI changes -->
+
+## Rollback
+<!-- How to revert if needed -->
+```
+
+Populate the checklist items from Block 4B Q23 answers. Skip this file entirely if the user said "no PR template needed".
+
+### Step 4.4 — Windsurf / Generic Agents
+
+Minimal: symlinks for `AGENTS.md`, `skills/`, `rules/` under `.agents/`.
+
+### Step 4.5 — Symlinks
+
+For each IDE declared in Phase 1, create symlinks. Use `setup-ide-links.sh` ([TEMPLATES.md](TEMPLATES.md#setup-ide-linkssh)).
+
+**Principle:** the script is **idempotent** (`ln -sfn` replaces without error). Can run as many times as needed.
 
 **Skip** symlinks for IDEs the user declared not using — reduces noise in `git status`.
 
@@ -262,33 +385,20 @@ Symlinks on Windows require administrator permission or Developer Mode enabled. 
 
 ---
 
-## Step 4.5 — Copilot Code Review (conditional)
+## Step 4.6 — Repository Validation Artifacts (conditional)
 
-**Apply only if the user declared GitHub Copilot in Phase 1.** Skip otherwise.
+**Apply only if the user answered Block 4B (Validation & Enforcement) in Phase 1.** Generate artifacts based on answers:
 
-GitHub Copilot Code Review reads two file shapes (both with a **4000-char hard limit per file**):
+| Block 4B answer | Artifact to generate |
+| --------------- | -------------------- |
+| Commitlint / pre-commit hooks | `scripts/validate-commit-msg.sh` + wire in `settings.json` PreToolUse |
+| PR template wanted | `.github/PULL_REQUEST_TEMPLATE.md` populated from Q23 answers |
+| Custom project rules | `.ai/rules/<rule-name>.md` entries with `applyTo` |
+| Auto-format preference | `scripts/format-file.sh` configured for declared stack |
 
-1. `.github/copilot-instructions.md` — repo-wide. Already a symlink to `.ai/INSTRUCTIONS.md` created by `setup-ide-links.sh`. Ensure the project purpose and accept/reject criteria appear in the first 4000 chars of INSTRUCTIONS (i.e., near the top — don't bury them past the truncation point).
-2. `.github/instructions/*.instructions.md` — path-targeted. Each file must end in `.instructions.md` and carry an `applyTo:` frontmatter glob.
+**For Copilot Code Review** (already covered in Step 4.3.2): Copilot instructions files are generated from interview answers and wired via symlinks.
 
-**Scaffold:**
-
-```bash
-mkdir -p .ai/instructions
-# Copy the .instructions.md template from references/TEMPLATES.md
-# into .ai/instructions/code-review.instructions.md and fill placeholders.
-```
-
-Run `setup-ide-links.sh` — it now symlinks `.github/instructions` → `.ai/instructions/` when the latter exists, so the path-targeted files become visible to Copilot Code Review automatically.
-
-**Validate after scaffolding:**
-
-```bash
-wc -c .ai/instructions/*.instructions.md   # each must be < 4000
-readlink .github/instructions              # must resolve to ../.ai/instructions
-```
-
-**For non-Copilot teams:** skip this step entirely. The `.ai/instructions/` directory is not created, `setup-ide-links.sh`'s conditional skips the symlink, and Copilot configuration is absent — no harm, no noise.
+**For non-repo projects:** skip this step entirely.
 
 ---
 

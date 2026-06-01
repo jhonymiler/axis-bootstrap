@@ -184,8 +184,7 @@ async function aiBootstrap(target, locale) {
       '',
       pc.cyan('  ' + T('aiTriggerText')),
       '',
-      pc.bold(T('aiCleanup')),
-      pc.dim('  $ axis cleanup'),
+      pc.bold(T('aiCleanupAuto')),
     ].join('\n'),
     T('aiNextSteps')
   );
@@ -204,9 +203,15 @@ function stubInstructions(locale) {
 3. **Antes de qualquer pergunta:** leia README, package.json (ou equivalente), e estrutura de arquivos do projeto
 4. Pause e peça confirmação entre cada Phase
 
-## Após terminar a Phase 5
+## Cleanup automático
 
-Avise o usuário para rodar \`axis cleanup\` — isso remove a skill axis-bootstrap (já cumpriu seu papel) e deixa o projeto autossuficiente.
+Após a Phase 5 (Validação), remova automaticamente a skill axis-bootstrap:
+
+\`\`\`bash
+rm -rf .ai/skills/axis-bootstrap
+\`\`\`
+
+Isso é o Step 5.5 do PLANNER — a skill já cumpriu seu papel e o projeto fica autossuficiente. Se o CLI \`axis\` estiver disponível, rode \`axis cleanup\` (faz o mesmo com confirmação).
 
 ## Regras invioláveis
 
@@ -226,9 +231,15 @@ Avise o usuário para rodar \`axis cleanup\` — isso remove a skill axis-bootst
 3. **Before any question:** read the README, package.json (or equivalent), and the project file tree
 4. Pause for explicit confirmation between phases
 
-## After Phase 5 completes
+## Auto-cleanup
 
-Tell the user to run \`axis cleanup\` — it removes the axis-bootstrap skill (it has done its job) and leaves the project self-sufficient.
+After Phase 5 (Validation), automatically remove the axis-bootstrap skill:
+
+\`\`\`bash
+rm -rf .ai/skills/axis-bootstrap
+\`\`\`
+
+This is Step 5.5 of the PLANNER — the skill has done its job and the project becomes self-sufficient. If the \`axis\` CLI is available, run \`axis cleanup\` instead (same result, with confirmation).
 
 ## Inviolable rules
 
@@ -397,13 +408,23 @@ async function quickBootstrap(target, locale) {
   ensureDir(path.join(target, 'scripts'));
   const hooksSrc = path.join(TEMPLATES, 'hooks');
   if (fs.existsSync(hooksSrc)) {
-    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh']) {
+    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
       const hSrc = path.join(hooksSrc, f);
       if (fs.existsSync(hSrc)) {
         const hDst = path.join(target, 'scripts', f);
         fs.copyFileSync(hSrc, hDst);
         fs.chmodSync(hDst, 0o755);
       }
+    }
+  }
+
+  // PR template (scaffolded for projects with git — agent customizes in Phase 3)
+  const prTemplateSrc = path.join(TEMPLATES, 'github', 'PULL_REQUEST_TEMPLATE.md');
+  if (fs.existsSync(prTemplateSrc)) {
+    ensureDir(path.join(target, '.github'));
+    const prDst = path.join(target, '.github', 'PULL_REQUEST_TEMPLATE.md');
+    if (!fs.existsSync(prDst)) {
+      fs.copyFileSync(prTemplateSrc, prDst);
     }
   }
   const selfMaintSrc = path.join(TEMPLATES, 'scripts-self-maint');
@@ -455,6 +476,8 @@ async function quickBootstrap(target, locale) {
     '.ai/CONVENTIONS.md',
     '.ai/docs/STATE.md',
     `.ai/skills/ (${spddSkills.length} SPDD + axis-delta + axis-specify + documentation-guardian)`,
+    'scripts/ (hooks + self-maint + commit validation)',
+    '.github/PULL_REQUEST_TEMPLATE.md',
     'axis.config.json',
     'setup-ide-links.sh',
     ...(ides.includes('claude') ? ['.claude/settings.json'] : []),
@@ -531,10 +554,14 @@ function presetTargetFiles(target, cfg) {
     }
   }
   // hooks and self-maint scripts
-  for (const f of ['post-spec-edit.sh', 'post-code-change.sh', '_lib.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh']) {
+  for (const f of ['post-spec-edit.sh', 'post-code-change.sh', '_lib.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
     if (fs.existsSync(path.join(TEMPLATES, 'hooks', f))) {
       files.push(path.join(target, 'scripts', f));
     }
+  }
+  // PR template
+  if (fs.existsSync(path.join(TEMPLATES, 'github', 'PULL_REQUEST_TEMPLATE.md'))) {
+    files.push(path.join(target, '.github', 'PULL_REQUEST_TEMPLATE.md'));
   }
   const selfMaintSrc = path.join(TEMPLATES, 'scripts-self-maint');
   if (fs.existsSync(selfMaintSrc)) {
@@ -705,13 +732,23 @@ async function presetBootstrap(target, locale, cfg, flags) {
   ensureDir(path.join(target, 'scripts'));
   const hooksSrcP = path.join(TEMPLATES, 'hooks');
   if (fs.existsSync(hooksSrcP)) {
-    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh']) {
+    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
       const hSrc = path.join(hooksSrcP, f);
       if (fs.existsSync(hSrc)) {
         const hDst = path.join(target, 'scripts', f);
         fs.copyFileSync(hSrc, hDst);
         fs.chmodSync(hDst, 0o755);
       }
+    }
+  }
+
+  // PR template
+  const prTemplateSrcP = path.join(TEMPLATES, 'github', 'PULL_REQUEST_TEMPLATE.md');
+  if (fs.existsSync(prTemplateSrcP)) {
+    ensureDir(path.join(target, '.github'));
+    const prDstP = path.join(target, '.github', 'PULL_REQUEST_TEMPLATE.md');
+    if (!fs.existsSync(prDstP)) {
+      fs.copyFileSync(prTemplateSrcP, prDstP);
     }
   }
   const selfMaintSrcP = path.join(TEMPLATES, 'scripts-self-maint');

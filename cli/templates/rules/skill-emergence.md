@@ -1,6 +1,9 @@
 ---
 applyTo: "src/**"
 trigger: on-edit
+description: "Skill emergence: detect when a new code module deserves its own .ai/skills/ entry"
+alwaysApply: false
+globs: "src/**"
 ---
 
 # Skill Emergence

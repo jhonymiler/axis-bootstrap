@@ -126,11 +126,15 @@ Before finishing work using this skill:
 
 ## Code Rule
 
+Rules in `.ai/rules/*.md` include frontmatter compatible with both Claude Code and Cursor. The `sync-cursor-rules.sh` script generates `.mdc` files from these `.md` sources.
+
 ```markdown
 ---
 applyTo: "**/*.{ext}"
-paths:
-  - "src/**"
+trigger: always
+description: "Brief agent-friendly description of when this rule applies"
+alwaysApply: true
+globs: "src/**"
 ---
 
 # <Rule Name>
@@ -144,6 +148,16 @@ paths:
 
 - <Concise guideline>
 ```
+
+**Frontmatter field reference:**
+
+| Field | Used by | Purpose |
+| ----- | ------- | ------- |
+| `applyTo` | Claude Code, Copilot | Path glob for scoping |
+| `trigger` | Claude Code (AXIS convention) | `always` / `on-edit` / `on-stop` |
+| `description` | **Cursor** (required for intelligent activation) | Agent-friendly description |
+| `alwaysApply` | **Cursor** | `true` = every conversation |
+| `globs` | **Cursor** | File patterns for scoped activation (alternative to `applyTo`) |
 
 ---
 
@@ -740,3 +754,153 @@ Generated from the Canvas Operations + Acceptance Criteria. Use alongside or aft
 - [ ] At least 1 boundary test per numeric/date input
 - [ ] All error paths in Safeguards covered
 ```
+
+---
+
+## PULL_REQUEST_TEMPLATE.md
+
+Create only if the user requested a PR template in Phase 1 Block 4B Q23. Place at `.github/PULL_REQUEST_TEMPLATE.md`. Populate the checklist from Block 4B answers.
+
+```markdown
+## Summary
+<!-- What does this PR do? Link to ticket: PROJ-XXX -->
+
+## Changes
+- 
+
+## Test Plan
+- [ ] Unit tests pass
+- [ ] Integration tests pass (if applicable)
+
+## Screenshots
+<!-- If UI changes, attach before/after screenshots -->
+
+## Rollback
+<!-- How to revert if this causes issues -->
+
+## Checklist
+- [ ] Code follows project conventions (.ai/rules/)
+- [ ] Tests cover new behavior
+- [ ] Documentation updated (if applicable)
+- [ ] No secrets or .env files committed
+```
+
+**Customization:** Add project-specific items from Block 4B Q23 answers to the Checklist section (e.g., "update API docs", "add migration", "update changelog").
+
+---
+
+## validate-commit-msg.sh
+
+Create only if the user requested commit validation in Phase 1 Block 4B Q22. Wires as a reminder hook, not a blocker — the agent reads the output and adjusts.
+
+```bash
+#!/bin/bash
+# scripts/validate-commit-msg.sh
+# Validates commit message format. Informational — exit 0 always.
+
+INPUT=$(cat 2>/dev/null || true)
+MSG=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null)
+
+# Only act on git commit commands
+if ! echo "$MSG" | grep -qE '^git commit'; then
+  exit 0
+fi
+
+# Extract message from -m flag
+COMMIT_MSG=$(echo "$MSG" | grep -oP '(?<=-m ["'"'"'])[^"'"'"']+')
+[ -z "$COMMIT_MSG" ] && exit 0
+
+echo "─── Commit message check ───"
+
+# Conventional Commits: type(scope): description
+if ! echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+'; then
+  echo "[warn] Message does not follow Conventional Commits format."
+  echo "[hint] Expected: type(scope): description"
+  echo "[hint] Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+fi
+
+echo "─── end ───"
+exit 0
+```
+
+**Adapt** the regex to the convention declared in Block 4 Q17 (Gitmoji, free-form, etc.). For free-form, skip this script entirely.
+
+---
+
+## IDE Capability Reference (from official documentation)
+
+Quick reference for Phase 3 harness decisions. Sources: [Cursor docs](https://cursor.com/docs/rules), [Claude Code docs](https://code.claude.com/docs/en/settings), [GitHub Copilot docs](https://docs.github.com/en/copilot), [AGENTS.md spec](https://agentspec.sh).
+
+### Entry points & rules
+
+| Feature | Claude Code | Cursor | GitHub Copilot | Windsurf |
+| ------- | ----------- | ------ | -------------- | -------- |
+| **Entry point** | `CLAUDE.md` (always loaded) | `AGENTS.md` + `CLAUDE.md` (both auto-loaded) | `.github/copilot-instructions.md` | `AGENTS.md` |
+| **Rules dir** | `.claude/rules/*.md` | `.cursor/rules/*.mdc` | `.github/instructions/*.instructions.md` | `.agents/rules/` |
+| **Rules format** | `.md` — frontmatter optional | **`.mdc`** — YAML frontmatter required (`description`, `globs`, `alwaysApply`) | `.instructions.md` — `applyTo` + optional `excludeAgent` | `.md` |
+| **Skills dir** | `.claude/skills/` | `.cursor/skills/` | `.github/skills/` | `.agents/skills/` |
+| **Char limit** | None | None | 4000 per file | None |
+
+**Critical:** Cursor **ignores** plain `.md` files in `.cursor/rules/`. The `.mdc` extension is mandatory. Use `scripts/sync-cursor-rules.sh` to generate `.mdc` from `.ai/rules/*.md`.
+
+### Harness & hooks
+
+| Feature | Claude Code | Cursor | GitHub Copilot | Windsurf |
+| ------- | ----------- | ------ | -------------- | -------- |
+| **Settings/permissions** | `.claude/settings.json` (allow/deny/ask) | No equivalent | No equivalent | No equivalent |
+| **Hook events** | 25+ events (see below) | None | GitHub Actions (CI-level) | None |
+| **Hook types** | `command`, `http`, `mcp_tool`, `prompt`, `agent` | None | None | None |
+| **Sub-agents** | `.claude/agents/*.md` | None (run inline) | None | None |
+| **Code review** | Manual | Manual | Copilot Code Review (automated) | Manual |
+| **Settings hierarchy** | user → project → local → managed | User rules (IDE settings) | Repo settings on github.com | None |
+
+### Claude Code hook events (official, from docs)
+
+| Event | When | Key use |
+| ----- | ---- | ------- |
+| `SessionStart` | Session begins/resumes | Print STATE.md hot tier |
+| `PreToolUse` | Before tool call | Block destructive commands, constitutional check |
+| `PostToolUse` | After tool succeeds | Spec-edit detection, code-change drift check |
+| `Stop` | Agent finishes responding | Remind STATE curation |
+| `UserPromptSubmit` | User submits prompt | Prompt validation/expansion |
+| `SubagentStart/Stop` | Subagent lifecycle | Logging, resource tracking |
+| `FileChanged` | Watched file changes on disk | React to config/env changes |
+| `ConfigChange` | Settings file changes | Live reload |
+| `PostToolBatch` | After parallel tool batch | Aggregate validation |
+
+The `if` field on hook handlers uses permission rule syntax for fine-grained filtering: `"Bash(git commit *)"` fires only on git commit commands, `"Edit(.ai/**)"` fires only for spec edits.
+
+### Cursor rules activation modes (official, from docs)
+
+| Mode | Frontmatter | When it activates |
+| ---- | ----------- | ----------------- |
+| **Always Apply** | `alwaysApply: true` | Every conversation — use for universal standards |
+| **Apply Intelligently** | `description: "..."` (no globs, `alwaysApply: false`) | Agent reads description and decides relevance |
+| **Apply to Specific Files** | `globs: "**/*.ts"` | When matching files are in context |
+| **Manual** | No frontmatter or `alwaysApply: false` no globs | Only when user `@`-mentions the rule |
+
+### GitHub Copilot instruction frontmatter (official, from docs)
+
+```yaml
+---
+applyTo: "src/**,lib/**"
+excludeAgent: "code-review"   # optional: "code-review" or "cloud-agent"
+---
+```
+
+The `excludeAgent` field prevents a specific Copilot feature from reading the file. Use `"code-review"` to exclude from automated PR review or `"cloud-agent"` to exclude from the coding agent.
+
+### AGENTS.md compatibility (2026 status)
+
+AGENTS.md is an open standard (Linux Foundation / Agentic AI Foundation) read natively by 18+ tools:
+
+| Tool | Reads AGENTS.md | Native format |
+| ---- | --------------- | ------------- |
+| Cursor | Yes | `.cursor/rules/*.mdc` |
+| GitHub Copilot | Yes | `.github/copilot-instructions.md` |
+| OpenAI Codex | Yes (primary) | — |
+| Windsurf | Yes | `.windsurfrules` |
+| Devin, Aider, Zed, Warp | Yes | — |
+| **Claude Code** | **No** (uses `CLAUDE.md`) | `CLAUDE.md` + `@imports` |
+
+**AXIS approach:** `AGENTS.md` → symlink → `.ai/INSTRUCTIONS.md` ← symlink ← `CLAUDE.md`. Both filenames point to the same content. All tools read it.

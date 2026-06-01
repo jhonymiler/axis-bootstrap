@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "Knowledge verification chain: verify facts from codebase before asserting — never fabricate"
+alwaysApply: true
 ---
 
 # Knowledge Verification Chain

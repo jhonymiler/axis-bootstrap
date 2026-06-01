@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "Session start protocol: read STATE.md before any substantive action to avoid rework from ignored prior decisions"
+alwaysApply: true
 ---
 
 # Session Start Protocol

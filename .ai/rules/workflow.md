@@ -1,6 +1,8 @@
 ---
 applyTo: "**"
 trigger: always
+description: "AXIS workflow: branch naming, commit conventions, PR flow, release process for the framework repo"
+alwaysApply: true
 ---
 
 # Workflow & Governance — AXIS Framework
