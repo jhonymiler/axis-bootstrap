@@ -7,6 +7,63 @@ versioning: [SemVer](https://semver.org/) for the CLI.
 
 ---
 
+## [2.2.0] — 2026-06-01
+
+> **Theme:** official IDE format support — each IDE gets its native
+> configuration format from a single `.ai/` source, plus automated
+> bootstrap cleanup and repository validation interview.
+
+### Added
+
+- **Official IDE format generation** — `.ai/rules/*.md` is now the single
+  source of truth that generates each IDE's native format:
+  - **Cursor**: `.cursor/rules/*.mdc` (Cursor ignores plain `.md`)
+  - **Claude Code**: `.claude/rules/*.md` + `settings.json` with 25+ hook events
+  - **GitHub Copilot**: `.github/instructions/*.instructions.md` (4000 char limit)
+  - **Windsurf / Codex**: `AGENTS.md` (open standard)
+- **`scripts/sync-cursor-rules.sh`** — converts `.ai/rules/*.md` →
+  `.cursor/rules/*.mdc` with frontmatter mapping (`trigger: always` →
+  `alwaysApply: true`, `applyTo` → `globs`).
+- **`scripts/validate-commit-msg.sh`** — Conventional Commits format
+  validation hook, wired as PreToolUse in Claude Code settings.json.
+- **`.github/PULL_REQUEST_TEMPLATE.md`** — scaffolded PR template with
+  Summary, Changes, Test Plan, Screenshots, Rollback, and Checklist.
+- **Phase 1 Block 4B — Validation & Enforcement** (Q22–Q25) — bootstrap
+  interview now asks how the user wants to validate commits, PRs,
+  formatting/linting, and custom project rules.
+- **Phase 5 Step 5.5 — Auto-Cleanup** — bootstrap skill is automatically
+  removed after validation passes. No manual `axis cleanup` needed.
+- **Universal frontmatter** — all `.ai/rules/*.md` files now include
+  `description` + `alwaysApply` fields for Cursor compatibility alongside
+  existing `applyTo` + `trigger` for Claude Code.
+- **`settings.json` template** — enhanced with `SessionStart`, `Stop` hooks,
+  `if` field for granular control (e.g., `Bash(git commit *)`).
+- **Landing page** — updated IDE section to show official formats per IDE,
+  terminal simulation reflects new harness phase + auto-cleanup.
+
+### Changed
+
+- **`setup-ide-links.sh`** — Cursor section now generates `.mdc` files via
+  `sync-cursor-rules.sh` instead of symlinking `.md` (which Cursor ignores).
+- **`init.js`** — copies `validate-commit-msg.sh` + `PULL_REQUEST_TEMPLATE.md`
+  during quick/preset bootstrap; auto-cleanup messaging replaces manual hint.
+- **`i18n.js`** — added `aiCleanupAuto` string (EN + PT).
+- **Phase 3 (PHASE-3-HARNESS.md)** — rewritten IDE-Specific Harness section
+  with capabilities table and per-IDE configuration steps (4.1–4.6).
+- **Phase 5 (PHASE-5-VALIDATION.md)** — added checklist items for PR template,
+  commit validation script, and Copilot instructions files.
+- **TEMPLATES.md** — added PR template, commit validation script, and updated
+  IDE Capability Reference table with official documentation insights.
+
+### Migration notes
+
+- **No breaking changes.** Existing bootstrapped projects continue to work.
+- Run `bash scripts/sync-cursor-rules.sh` in existing projects to generate
+  `.mdc` rules for Cursor (previously ignored `.md` symlinks).
+- The `.mdc` files are gitignored (generated artifacts).
+
+---
+
 ## [2.1.0] — 2026-05-26
 
 > **Theme:** close the comparative gaps identified vs GitHub Spec Kit,
