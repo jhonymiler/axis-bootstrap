@@ -95,9 +95,10 @@ specification gaps are surfaced when they are still cheap to fix. Closes the
 debate gap vs BMAD's party-mode by giving three independent reviewers an
 explicit "find what's wrong" mandate.
 
-**Step 0 (mandatory before any dispatch):** install the 3 challenger sub-agents
-from `agents/challengers/` into `.claude/agents/` (mirrors how Phase 1 handles
-discoverers).
+**Step 0 (mandatory before any dispatch):** the 3 challenger sub-agents live in
+`.ai/agents/challengers/` and are already registered in `.claude/agents/` via the
+`.ai/agents` symlink (unlike the transient discoverers, which Phase 1 copies in).
+Confirm they resolve, then dispatch.
 
 **Pipeline:**
 
@@ -266,9 +267,9 @@ After all quality gates pass and the handoff report is presented, **remove the b
 rm -rf .ai/skills/axis-bootstrap
 ```
 
-**What is removed:** the `axis-bootstrap` skill bundle (PLANNER.md, PHASE-*.md, agents/discoverers, agents/challengers, agents/specialists, references/).
+**What is removed:** the `axis-bootstrap` skill bundle (PLANNER.md, PHASE-*.md, the transient `agents/discoverers/`, references/).
 
-**What stays:** all generated project skills, rules, docs, STATE.md, CONVENTIONS.md, settings.json, hooks, symlinks.
+**What stays:** all generated project skills, the permanent satellite skills, the persistent agents in `.ai/agents/` (challengers, specialists, debates) surfaced via `.claude/agents`, rules, docs, STATE.md, CONVENTIONS.md, settings.json, hooks, symlinks.
 
 **Rationale:** the bootstrap skill served its purpose — keeping it adds noise to the skills directory and wastes token budget when the agent lists available skills. The project is now self-sufficient.
 

@@ -18,8 +18,12 @@
     ],
     "deny": [
       "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
       "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
       "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)",
+      "Bash(chmod 777:*)",
       "Bash(sudo:*)",
       "Read(.env)",
       "Read(.env.*)"
@@ -36,6 +40,12 @@
   "hooks": {
     "SessionStart": [
       { "hooks": [{ "type": "command", "command": "bash .claude/hooks/session-start.sh" }] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/pre-bash-guard.sh" }]
+      }
     ],
     "PostToolUse": [
       {

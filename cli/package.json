@@ -1,6 +1,6 @@
 {
   "name": "@axis-bootstrap/cli",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "AXIS — Harness-first scaffolding & SPDD pipeline CLI for AI-augmented projects",
   "type": "module",
   "repository": {

@@ -7,6 +7,39 @@ versioning: [SemVer](https://semver.org/) for the CLI.
 
 ---
 
+## [2.3.0] — 2026-06-09
+
+> **Theme:** sub-agents become a first-class, IDE-reflected artifact, and every
+> bootstrapped project ships with its full permanent skill set.
+
+### Added
+
+- **Agent fan-out to Claude Code** — `.ai/agents/` is now the single source of
+  truth for sub-agent definitions (challengers, specialists, debates), symlinked
+  to `.claude/agents/` (Claude's native, recursively-scanned registry) and
+  `.agents/`. Mirrors how `skills` and `rules` already fan out.
+- **Permanent skills installed at `axis init`** — `alignment`, `abstraction-first`,
+  `story-decompose`, `iterative-review`, `axis-remember`, `axis-evolve`,
+  `axis-delta`, `axis-specify` are now copied into every bootstrapped project
+  (previously only `axis-bootstrap` shipped, leaving PLANNER links broken).
+- **Debate sub-agents carry valid frontmatter** — `manage-debate-agents.sh`
+  emits slug-qualified `name:`/`description:`/`tools:` so each role registers as
+  a unique Claude sub-agent.
+
+### Changed
+
+- **`.ai/agents/` holds only agent definitions** — the `AGENTS.md`/`skills`/`rules`
+  symlinks were removed from it; Claude scans the dir recursively and would
+  otherwise register every `SKILL.md` as a bogus sub-agent. The open-standard
+  entry point remains the root `AGENTS.md → .ai/INSTRUCTIONS.md`.
+- **`challengers/` + `specialists/` moved** out of the `axis-bootstrap` bundle
+  into `.ai/agents/` (persistent). **Discoverers stay** in the bundle (transient;
+  removed with it at cleanup).
+- `sync-cli-templates.sh` mirrors `.ai/agents/`; `validate-axis.sh` checks the
+  new drift paths plus the `.claude/agents` symlink.
+
+---
+
 ## [2.2.0] — 2026-06-01
 
 > **Theme:** official IDE format support — each IDE gets its native

@@ -37,8 +37,10 @@ AXIS/                                            ← root (humans read README/FR
 │   ├── settings.json                            ← versioned permissions + hooks
 │   ├── CLAUDE.md                   → ../.ai/INSTRUCTIONS.md
 │   ├── rules                       → ../.ai/rules
-│   └── skills                      → ../.ai/skills
-├── .cursor/, .agents/, .github/                 ← symlinks to .ai/{rules,skills}
+│   ├── skills                      → ../.ai/skills
+│   └── agents                      → ../.ai/agents   ← native sub-agent registry
+├── .cursor/, .github/                            ← IDE links to .ai/{rules,skills}
+├── .agents                          → .ai/agents   ← agent definitions (not skills/rules)
 └── .ai/                                         ← AI: everything here is single source
     ├── INSTRUCTIONS.md                          ← AI: entry point
     ├── CONVENTIONS.md                           ← this file
@@ -96,16 +98,17 @@ mkdir -p .claude
 ln -sf ../.ai/INSTRUCTIONS.md .claude/CLAUDE.md
 ln -sf ../.ai/rules .claude/rules
 ln -sf ../.ai/skills .claude/skills
+ln -sfn ../.ai/agents .claude/agents   # native sub-agent registry (scanned recursively)
 
 # Cursor
 mkdir -p .cursor
 ln -sf ../.ai/rules .cursor/rules
 ln -sf ../.ai/skills .cursor/skills
 
-# Windsurf / generic agents
-mkdir -p .agents
-ln -sf ../.ai/rules .agents/rules
-ln -sf ../.ai/skills .agents/skills
+# Generic agents (.ai/agents holds ONLY agent definitions — no skills/rules/AGENTS.md
+# symlinks, which Claude would parse as bogus subagents). Root AGENTS.md is the entry point.
+mkdir -p .ai/agents
+ln -sfn .ai/agents .agents
 
 # GitHub Copilot
 mkdir -p .github

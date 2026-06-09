@@ -14,21 +14,25 @@ fail=0
 pass() { echo "  OK   $*"; }
 fail() { echo "  FAIL $*"; fail=1; }
 
-echo "[1/4] INSTRUCTIONS.md line count (target 100-180)"
-lines=$(wc -l < .ai/INSTRUCTIONS.md)
-if [ "$lines" -lt 100 ] || [ "$lines" -gt 180 ]; then
-  fail ".ai/INSTRUCTIONS.md = $lines lines"
+# Token budget (chars/4 proxy — the same metric as `axis doctor`). Line counts are
+# a frail proxy: a dense table row costs ~10x a short comment. Budget by tokens.
+tokens() { echo $(( $(wc -c < "$1") / 4 )); }
+
+echo "[1/4] INSTRUCTIONS.md token budget (target ≤ 2600, chars/4)"
+t=$(tokens .ai/INSTRUCTIONS.md)
+if [ "$t" -gt 2600 ]; then
+  fail ".ai/INSTRUCTIONS.md ≈ $t tokens (over budget — trim before adding)"
 else
-  pass ".ai/INSTRUCTIONS.md = $lines lines"
+  pass ".ai/INSTRUCTIONS.md ≈ $t tokens"
 fi
 
-echo "[2/4] Each SKILL.md ≤ 60 lines"
+echo "[2/4] Each SKILL.md ≤ 1200 tokens (chars/4)"
 for f in .ai/skills/*/SKILL.md; do
-  lines=$(wc -l < "$f")
-  if [ "$lines" -gt 60 ]; then
-    fail "$f = $lines lines (max 60)"
+  t=$(tokens "$f")
+  if [ "$t" -gt 1200 ]; then
+    fail "$f ≈ $t tokens (max 1200 — move detail to references/)"
   else
-    pass "$f = $lines lines"
+    pass "$f ≈ $t tokens"
   fi
 done
 
@@ -50,7 +54,7 @@ for f in PLANNER.md PROMPT-TEMPLATE.md SKILL.md; do
     sync_fail=1
   fi
 done
-for s in abstraction-first alignment iterative-review story-decompose; do
+for s in abstraction-first alignment iterative-review story-decompose axis-remember axis-evolve; do
   if ! diff -q .ai/skills/$s/SKILL.md cli/templates/skills/$s.md > /dev/null 2>&1; then
     fail "$s skill drift between .ai/skills and cli/templates"
     sync_fail=1
@@ -62,7 +66,7 @@ for r in engineering-discipline context-economy knowledge-verification session-s
     sync_fail=1
   fi
 done
-for h in _lib session-start post-spec-edit stop; do
+for h in _lib session-start pre-bash-guard post-spec-edit stop; do
   if ! diff -q .ai/hooks/$h.sh cli/templates/hooks/$h.sh > /dev/null 2>&1; then
     fail "$h hook drift between .ai/hooks and cli/templates/hooks"
     sync_fail=1
@@ -75,17 +79,19 @@ for d in business-rules-extractor flow-extractor architecture-mapper stack-profi
     sync_fail=1
   fi
 done
+# Specialists + challengers now live in .ai/agents/ (single source), mirrored to
+# cli/templates/agents/. Discoverers stay in the bootstrap bundle (transient).
 for s in business-rules-keeper flow-architect architecture-guardian conventions-keeper; do
-  if ! diff -q .ai/skills/axis-bootstrap/agents/specialists/$s.md \
-                cli/templates/bootstrap-skill/agents/specialists/$s.md > /dev/null 2>&1; then
+  if ! diff -q .ai/agents/specialists/$s.md \
+                cli/templates/agents/specialists/$s.md > /dev/null 2>&1; then
     fail "agents/specialists/$s.md drift between live and CLI templates"
     sync_fail=1
   fi
 done
 # Challengers (F13 — adversarial reviewers dispatched in Phase 1.8)
 for c in security-challenger simplicity-challenger scope-challenger; do
-  if ! diff -q .ai/skills/axis-bootstrap/agents/challengers/$c.md \
-                cli/templates/bootstrap-skill/agents/challengers/$c.md > /dev/null 2>&1; then
+  if ! diff -q .ai/agents/challengers/$c.md \
+                cli/templates/agents/challengers/$c.md > /dev/null 2>&1; then
     fail "agents/challengers/$c.md drift between live and CLI templates"
     sync_fail=1
   fi
@@ -123,6 +129,12 @@ for f in SPEC-FOLDER-LAYOUT.md; do
     sync_fail=1
   fi
 done
+# Debate-agent docs (generic agents namespace)
+if ! diff -q .ai/agents/debates/README.md \
+              cli/templates/agents/debates/README.md > /dev/null 2>&1; then
+  fail "agents/debates/README.md drift between live and CLI templates"
+  sync_fail=1
+fi
 [ $sync_fail -eq 0 ] && pass "all skill + rule + hook + discoverer + specialist + rebootstrap + delta + specify files in sync — run scripts/sync-cli-templates.sh to fix drift"
 
 echo "[4/4] Root symlinks resolve"
@@ -140,6 +152,18 @@ if [ -d .ai/hooks ]; then
     pass ".claude/hooks → $(readlink .claude/hooks)"
   else
     fail ".claude/hooks should be a symlink to ../.ai/hooks (run setup-ide-links.sh)"
+  fi
+fi
+if [ -d .ai/agents ]; then
+  if [ -L .agents ] && [ -e .agents ]; then
+    pass ".agents → $(readlink .agents)"
+  else
+    fail ".agents should be a symlink to .ai/agents (run setup-ide-links.sh)"
+  fi
+  if [ -L .claude/agents ] && [ -e .claude/agents ]; then
+    pass ".claude/agents → $(readlink .claude/agents)"
+  else
+    fail ".claude/agents should be a symlink to ../.ai/agents (run setup-ide-links.sh)"
   fi
 fi
 

@@ -144,6 +144,26 @@ export async function init(argv) {
   return quickBootstrap(target, locale);
 }
 
+// Permanent skills shipped to every bootstrapped project. Flattened templates
+// (cli/templates/skills/<name>.md) install as .ai/skills/<name>/SKILL.md;
+// dir-form templates install as .ai/skills/<name>/.
+const FLAT_SKILLS = ['alignment', 'abstraction-first', 'story-decompose', 'iterative-review', 'axis-remember', 'axis-evolve'];
+const DIR_SKILLS = [['delta-skill', 'axis-delta'], ['specify-skill', 'axis-specify']];
+
+function installPermanentSkills(target) {
+  const skillsRoot = path.join(target, '.ai', 'skills');
+  for (const name of FLAT_SKILLS) {
+    const src = path.join(TEMPLATES, 'skills', `${name}.md`);
+    if (!exists(src)) continue;
+    const destDir = path.join(skillsRoot, name);
+    ensureDir(destDir);
+    fs.copyFileSync(src, path.join(destDir, 'SKILL.md'));
+  }
+  for (const [tpl, name] of DIR_SKILLS) {
+    copyDir(path.join(TEMPLATES, tpl), path.join(skillsRoot, name));
+  }
+}
+
 /**
  * AI-driven path: copy axis-bootstrap skill bundle, print trigger phrase.
  * The agent does the real discovery + generation.
@@ -158,8 +178,13 @@ async function aiBootstrap(target, locale) {
   ensureDir(path.join(target, '.ai', 'skills'));
   ensureDir(path.join(target, '.ai', 'docs'));
 
-  // Copy bootstrap skill bundle
+  // Copy bootstrap skill bundle (temporary — removed at cleanup)
   copyDir(path.join(TEMPLATES, 'bootstrap-skill'), path.join(target, '.ai', 'skills', 'axis-bootstrap'));
+
+  // Install the permanent skills + persistent agents. These survive cleanup —
+  // only axis-bootstrap (with its transient discoverers) is removed at the end.
+  installPermanentSkills(target);
+  copyDir(path.join(TEMPLATES, 'agents'), path.join(target, '.ai', 'agents'));
 
   // Drop minimal CLAUDE.md / AGENTS.md pointing the agent to the skill
   const stub = stubInstructions(locale);
@@ -380,6 +405,10 @@ async function quickBootstrap(target, locale) {
     copyDir(specifySrc, path.join(target, '.ai', 'skills', 'axis-specify'));
   }
 
+  // Persistent agents (challengers, specialist templates, debates scaffold) —
+  // surfaced via the .claude/agents symlink created by setup-ide-links.sh.
+  copyDir(path.join(TEMPLATES, 'agents'), path.join(target, '.ai', 'agents'));
+
   // F14 — axis.config.json (workflow policy read by the agent, not by CLI)
   const configSrc = path.join(TEMPLATES, 'axis.config.json');
   if (fs.existsSync(configSrc)) {
@@ -553,6 +582,18 @@ function presetTargetFiles(target, cfg) {
       }
     }
   }
+  // Persistent agents (challengers, specialist templates, debates scaffold)
+  const agentsTplSrc = path.join(TEMPLATES, 'agents');
+  const walkAgents = (src, dest) => {
+    if (!fs.existsSync(src)) return;
+    for (const e of fs.readdirSync(src, { withFileTypes: true })) {
+      const s = path.join(src, e.name);
+      const d = path.join(dest, e.name);
+      if (e.isDirectory()) walkAgents(s, d);
+      else files.push(d);
+    }
+  };
+  walkAgents(agentsTplSrc, path.join(target, '.ai', 'agents'));
   // hooks and self-maint scripts
   for (const f of ['post-spec-edit.sh', 'post-code-change.sh', '_lib.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
     if (fs.existsSync(path.join(TEMPLATES, 'hooks', f))) {
@@ -704,6 +745,9 @@ async function presetBootstrap(target, locale, cfg, flags) {
   if (fs.existsSync(specifySrcP)) {
     copyDir(specifySrcP, path.join(target, '.ai', 'skills', 'axis-specify'));
   }
+
+  // Persistent agents — surfaced via the .claude/agents symlink.
+  copyDir(path.join(TEMPLATES, 'agents'), path.join(target, '.ai', 'agents'));
 
   // F14 — axis.config.json (workflow policy read by the agent, not by CLI)
   const configSrcP = path.join(TEMPLATES, 'axis.config.json');

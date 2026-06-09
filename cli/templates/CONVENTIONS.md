@@ -2,7 +2,7 @@
 
 ## Single Source of Truth
 
-All AI content lives in `.ai/`. IDE folders (`.claude/`, `.cursor/`, `.agents/`, `.github/`) contain only symlinks created by `setup-ide-links.sh`.
+All AI content lives in `.ai/`. IDE folders (`.claude/`, `.cursor/`, `.github/`) contain symlinks created by `setup-ide-links.sh`, and `.agents` points to `.ai/agents`.
 
 ## Progressive Disclosure
 
