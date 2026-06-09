@@ -105,11 +105,7 @@ Summary (full standards in [.ai/rules/](.ai/rules/)):
 
 Summary (full standards in [.ai/rules/workflow.md](.ai/rules/workflow.md)):
 
-- **Task tracker:** GitHub Issues — label `recursiveness` for self-applicability bugs.
-- **Branches:** `feat/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug. Direct push to `main` only for trivial doc/typo fixes.
-- **Commits:** Conventional Commits. Subject ≤ 72 chars, imperative mood.
-- **PRs:** squash merge into `main`, CI must be green, description must include validation evidence for spec changes.
-- **Versioning:** SemVer for the CLI; dated tags for spec revisions.
+- **Branches:** `feat/|fix/|docs/|chore/|refactor/` + slug; direct push to `main` only for trivial doc fixes. **Commits:** Conventional Commits, subject ≤ 72 chars. **PRs:** squash into `main`, CI green, validation evidence for spec changes.
 - **Agent must run** `scripts/sync-cli-templates.sh` after editing `.ai/skills/`, then `scripts/validate-axis.sh` before commit.
 
 ## Available Skills
@@ -125,6 +121,8 @@ Load **one** skill per request based on the trigger phrases below. If multiple m
 | [`abstraction-first`](.ai/skills/abstraction-first/SKILL.md) | "design", "architecture", "entities/responsibilities", feature touching > 2 components, before writing Canvas E + A + S₁ | Single-file change, pure refactor |
 | [`alignment`](.ai/skills/alignment/SKILL.md) | "what's in/out of scope", "DoD", "acceptance", before writing Canvas O + N + S₂, ambiguous goal | Trivial request with obvious scope |
 | [`iterative-review`](.ai/skills/iterative-review/SKILL.md) | "review", "regenerate", "fix this code", drift detected post-implementation, "track A/B" | Greenfield generation |
+| [`axis-remember`](.ai/skills/axis-remember/SKILL.md) | "remember this", "add a rule", "never again", postmortem of a *recurring* mistake | One-off note, trivial preference |
+| [`axis-evolve`](.ai/skills/axis-evolve/SKILL.md) | "retro", "improve the harness", "what keeps going wrong", periodic self-improvement | A single fresh bug (use `axis-remember`) |
 | [`copilot-review`](.ai/skills/copilot-review/SKILL.md) | PRs against AXIS-Framework, Copilot Code Review config questions, `.github/instructions/` work | Generic code review in any other repo |
 
 **Routing anti-patterns:** loading `axis-bootstrap` to edit one existing file; loading `story-decompose` for a single bug; loading multiple skills "in case". Each load costs tokens — pick one or none.

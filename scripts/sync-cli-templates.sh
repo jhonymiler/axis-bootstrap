@@ -16,7 +16,7 @@ rsync -a --delete \
   cli/templates/bootstrap-skill/
 
 # 2) Satellite skills: flatten SKILL.md → <name>.md
-for skill in abstraction-first alignment iterative-review story-decompose; do
+for skill in abstraction-first alignment iterative-review story-decompose axis-remember axis-evolve; do
   cp .ai/skills/$skill/SKILL.md cli/templates/skills/$skill.md
 done
 
@@ -29,27 +29,23 @@ done
 
 # 4) Harness hooks (Claude Code SessionStart / PostToolUse / Stop).
 # Generic, Claude-specific (no other IDE consumes these yet).
+# Hooks with a live counterpart are copied; template-only hooks
+# (e.g. post-code-change, constitutional-check) have no live source and
+# are kept as project-agnostic templates.
 mkdir -p cli/templates/hooks
-for hook in _lib session-start post-spec-edit stop; do
-  cp .ai/hooks/$hook.sh cli/templates/hooks/$hook.sh
-done
-
-# 4) Harness hooks (Claude Code SessionStart / PostToolUse / Stop).
-# Generic, Claude-specific (no other IDE consumes these yet).
-mkdir -p cli/templates/hooks
-for hook in _lib session-start post-spec-edit post-code-change stop; do
+for hook in _lib session-start pre-bash-guard post-spec-edit post-code-change stop; do
   if [ -f ".ai/hooks/$hook.sh" ]; then
     cp ".ai/hooks/$hook.sh" "cli/templates/hooks/$hook.sh"
-  elif [ -f "cli/templates/hooks/$hook.sh" ]; then
-    : # kept as project-agnostic template — no live counterpart in AXIS
   fi
 done
 
-# 5) Specialists (agents created from discoverer output in Phase 4.5).
-mkdir -p cli/templates/bootstrap-skill/agents/specialists
-rsync -a --delete \
-  .ai/skills/axis-bootstrap/agents/specialists/ \
-  cli/templates/bootstrap-skill/agents/specialists/
+# 5) Persistent agents (challengers, specialist templates, debates) — single
+# source in .ai/agents/, surfaced to projects via .claude/agents. Discoverers
+# stay in the bootstrap bundle (transient — see block #1's rsync).
+mkdir -p cli/templates/agents
+rsync -a --delete --exclude='debates/*/' \
+  .ai/agents/ \
+  cli/templates/agents/
 
 # 6) Re-bootstrap skill (sibling to axis-bootstrap — distributable to projects).
 rsync -a --delete \
@@ -66,4 +62,8 @@ rsync -a --delete \
   .ai/skills/axis-specify/ \
   cli/templates/specify-skill/
 
-echo "Synced .ai/skills/ + .ai/rules/ + .ai/hooks/ + specialists + rebootstrap-skill + delta-skill + specify-skill → cli/templates/"
+# 9) Debate self-maintenance script (the debates/ scaffold itself ships via block #5).
+mkdir -p cli/templates/scripts-self-maint
+cp scripts/manage-debate-agents.sh cli/templates/scripts-self-maint/manage-debate-agents.sh
+
+echo "Synced .ai/skills/ + .ai/rules/ + .ai/hooks/ + .ai/agents/ + rebootstrap-skill + delta-skill + specify-skill → cli/templates/"

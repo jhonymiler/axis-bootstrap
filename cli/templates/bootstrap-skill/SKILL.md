@@ -43,10 +43,10 @@ Detailed orchestration in [PLANNER.md](PLANNER.md). Final output contract in [PR
 ## References
 
 - [PLANNER.md](PLANNER.md) · [PROMPT-TEMPLATE.md](PROMPT-TEMPLATE.md) · [QUICKSTART.md](references/QUICKSTART.md)
-- [PHASE-1-DISCOVERY.md](references/PHASE-1-DISCOVERY.md) · [agents/discoverers/](agents/discoverers/) · [agents/challengers/](agents/challengers/)
+- [PHASE-1-DISCOVERY.md](references/PHASE-1-DISCOVERY.md) · [agents/discoverers/](agents/discoverers/) · [challengers/](../../agents/challengers/)
 - [PHASE-2-SPEC.md](references/PHASE-2-SPEC.md) · [PHASE-3-HARNESS.md](references/PHASE-3-HARNESS.md)
 - [PHASE-3-5-SELF-MAINTENANCE.md](references/PHASE-3-5-SELF-MAINTENANCE.md) — self-maintenance kit
-- [PHASE-4-CONTINUITY.md](references/PHASE-4-CONTINUITY.md) · [PHASE-4-5-SPECIALIST.md](references/PHASE-4-5-SPECIALIST.md) · [agents/specialists/](agents/specialists/)
+- [PHASE-4-CONTINUITY.md](references/PHASE-4-CONTINUITY.md) · [PHASE-4-5-SPECIALIST.md](references/PHASE-4-5-SPECIALIST.md) · [specialists/](../../agents/specialists/)
 - [PHASE-5-VALIDATION.md](references/PHASE-5-VALIDATION.md) · [PHASE-6-EXAMPLE.md](references/PHASE-6-EXAMPLE.md)
 - [TEMPLATES.md](references/TEMPLATES.md) · [PATTERNS.md](references/PATTERNS.md) · [CANVAS-REASONS.md](references/CANVAS-REASONS.md) · [UNIVERSAL-MAP.md](references/UNIVERSAL-MAP.md)
 

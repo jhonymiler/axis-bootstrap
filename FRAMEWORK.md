@@ -93,12 +93,13 @@ project/
 │   ├── INSTRUCTIONS.md
 │   ├── skills/
 │   ├── rules/
+│   ├── agents/                   ← sub-agent definitions (challengers, specialists, debates)
 │   └── docs/
 ├── CLAUDE.md     → .ai/INSTRUCTIONS.md
 ├── AGENTS.md     → .ai/INSTRUCTIONS.md
-├── .claude/{rules,skills}        → ../.ai/{rules,skills}
+├── .claude/{rules,skills,agents} → ../.ai/{rules,skills,agents}
 ├── .cursor/{rules,skills}        → ../.ai/{rules,skills}
-├── .agents/{rules,skills}        → ../.ai/{rules,skills}
+├── .agents                       → .ai/agents   (agent definitions)
 └── .github/
     ├── copilot-instructions.md   → ../.ai/INSTRUCTIONS.md
     ├── instructions/             → ../.ai/rules/

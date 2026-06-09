@@ -15,7 +15,7 @@ The transformation is: discoverer report → interpolate into specialist templat
 ## Input
 
 - Phase 1 discoverer outputs stored in `.ai/.discovery/` (created during bootstrap)
-- The 4 specialist templates from `agents/specialists/`
+- The 4 specialist templates from `.ai/agents/specialists/`
 - `{{PROJECT_NAME}}` from `INSTRUCTIONS.md` header
 
 ---
@@ -100,7 +100,7 @@ Ask: *"These specialists now hold the extracted knowledge for ongoing consultati
 
 ## References
 
-- [agents/specialists/business-rules-keeper.md](../agents/specialists/business-rules-keeper.md)
-- [agents/specialists/flow-architect.md](../agents/specialists/flow-architect.md)
-- [agents/specialists/architecture-guardian.md](../agents/specialists/architecture-guardian.md)
-- [agents/specialists/conventions-keeper.md](../agents/specialists/conventions-keeper.md) *(opt-in)*
+- [business-rules-keeper.md](../../../agents/specialists/business-rules-keeper.md)
+- [flow-architect.md](../../../agents/specialists/flow-architect.md)
+- [architecture-guardian.md](../../../agents/specialists/architecture-guardian.md)
+- [conventions-keeper.md](../../../agents/specialists/conventions-keeper.md) *(opt-in)*

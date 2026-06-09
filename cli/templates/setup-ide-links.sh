@@ -29,8 +29,10 @@ echo "→ Claude Code (.claude/)"
 mkdir -p .claude
 ln -sf  ../.ai/INSTRUCTIONS.md .claude/CLAUDE.md
 ln -sfn ../.ai/skills          .claude/skills
-[ -d .ai/rules ] && ln -sfn ../.ai/rules .claude/rules || true
-[ -d .ai/hooks ] && ln -sfn ../.ai/hooks .claude/hooks || true
+[ -d .ai/rules ]  && ln -sfn ../.ai/rules  .claude/rules  || true
+[ -d .ai/hooks ]  && ln -sfn ../.ai/hooks  .claude/hooks  || true
+# Native sub-agent registry: Claude Code scans .claude/agents/ recursively.
+[ -d .ai/agents ] && ln -sfn ../.ai/agents .claude/agents || true
 
 echo "→ Cursor (.cursor/)"
 mkdir -p .cursor
@@ -51,11 +53,16 @@ if [ -d .ai/rules ]; then
   fi
 fi
 
-echo "→ Generic agents (.agents/)"
-mkdir -p .agents
-ln -sf  ../.ai/INSTRUCTIONS.md .agents/AGENTS.md
-ln -sfn ../.ai/skills          .agents/skills
-[ -d .ai/rules ] && ln -sfn ../.ai/rules .agents/rules || true
+echo "→ Generic agents compatibility link (.agents/ → .ai/agents)"
+# .ai/agents/ holds ONLY agent definitions (challengers, specialists, debates).
+# It is NOT polluted with skills/rules/AGENTS.md symlinks — Claude Code scans it
+# recursively and would register every non-agent .md as a bogus subagent. The
+# open-standard entry point is the root AGENTS.md → .ai/INSTRUCTIONS.md above.
+mkdir -p .ai/agents
+if [ -d .agents ] && [ ! -L .agents ]; then
+  rm -rf .agents
+fi
+ln -sfn .ai/agents .agents
 
 echo "→ GitHub Copilot (.github/)"
 mkdir -p .github
