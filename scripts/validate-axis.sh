@@ -174,6 +174,9 @@ if [ -d .ai/agents ]; then
 fi
 
 echo "[5/5] IDE link + Cursor rule sync (local gate)"
+if [ -x setup-ide-links.sh ]; then
+  bash setup-ide-links.sh >/dev/null
+fi
 if [ -x scripts/validate-ide-links.sh ]; then
   if bash scripts/validate-ide-links.sh; then
     pass "validate-ide-links.sh"
