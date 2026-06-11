@@ -11,6 +11,15 @@ versioning: [SemVer](https://semver.org/) for the CLI.
 
 ---
 
+## [2.4.1] — 2026-06-11
+
+### Fixed
+
+- **`validate-axis.sh`** — runs `setup-ide-links.sh` before `validate-ide-links.sh`
+  so CI generates `.cursor/rules/*.mdc` (gitignored) before the sync gate.
+
+---
+
 ## [2.4.0] — 2026-06-11
 
 > **Theme:** Cursor bootstrap parity — generated `.mdc` rules, local validation gate,
