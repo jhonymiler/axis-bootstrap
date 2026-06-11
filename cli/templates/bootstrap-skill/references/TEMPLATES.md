@@ -527,41 +527,31 @@ exit 0
 
 ## setup-ide-links.sh
 
-```bash
-#!/bin/bash
-# Idempotent — can run as many times as needed without error.
-set -e
+Shipped at project root by Phase 3. **Do not duplicate inline** — copy from `cli/templates/setup-ide-links.sh` (AXIS) or run `axis init` / `axis link`.
 
-# Root
-ln -sf .ai/INSTRUCTIONS.md CLAUDE.md
-ln -sf .ai/INSTRUCTIONS.md AGENTS.md
+Key behaviors:
 
-# Claude Code
-mkdir -p .claude
-ln -sf ../.ai/INSTRUCTIONS.md .claude/CLAUDE.md
-ln -sf ../.ai/rules .claude/rules
-ln -sf ../.ai/skills .claude/skills
+- Root: `AGENTS.md` + `CLAUDE.md` → `.ai/INSTRUCTIONS.md`
+- Claude: `.claude/{skills,rules,hooks,agents}` → `.ai/*`
+- **Cursor:** `.cursor/skills` symlink + `scripts/sync-cursor-rules.sh` generates `.cursor/rules/*.mdc` (never symlink `.md` rules)
+- `.agents` → `.ai/agents` (agent definitions only — no skills/rules pollution)
+- Copilot: `.github/copilot-instructions.md` + optional `.github/instructions/`
 
-# Cursor
-mkdir -p .cursor
-ln -sf ../.ai/rules .cursor/rules
-ln -sf ../.ai/skills .cursor/skills
+Post-install local gate: `bash scripts/validate-ide-links.sh`
 
-# Windsurf / Generic Agents
-mkdir -p .agents
-ln -sf ../.ai/rules .agents/rules
-ln -sf ../.ai/skills .agents/skills
+**Comment/remove** IDE sections not declared in Phase 1 to reduce noise in `git status`.
 
-# GitHub Copilot
-mkdir -p .github
-ln -sf ../.ai/INSTRUCTIONS.md .github/copilot-instructions.md
-ln -sf ../.ai/rules .github/instructions
-ln -sf ../.ai/skills .github/skills
+---
 
-echo "Symlinks created/updated successfully."
-```
+## docs/cursor.md
 
-**Comment/remove** the sections for IDEs not used by the team, to reduce noise in `git status`.
+Copy to `.ai/docs/cursor.md` when the user declared **Cursor** in Phase 1. Template: `cli/templates/docs/cursor.md`. Documents SSOT → `.mdc` generation, subagent dispatch via Task tool, and maintenance commands.
+
+---
+
+## agents/README.md
+
+Shipped at `.ai/agents/README.md` by `axis init` (from `cli/templates/agents/README.md`). Explains specialists, challengers, debates, and per-IDE invocation. Do not symlink skills or rules into `.ai/agents/`.
 
 ---
 

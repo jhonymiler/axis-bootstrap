@@ -66,4 +66,16 @@ rsync -a --delete \
 mkdir -p cli/templates/scripts-self-maint
 cp scripts/manage-debate-agents.sh cli/templates/scripts-self-maint/manage-debate-agents.sh
 
+# 10) Cursor harness scripts (scripts/ is SSOT — copied into bootstrapped projects).
+for f in sync-cursor-rules.sh validate-ide-links.sh; do
+  cp "scripts/$f" "cli/templates/hooks/$f"
+  chmod +x "cli/templates/hooks/$f"
+done
+
+# 11) Cursor integration doc (bootstrap template for target projects).
+if [ -f .ai/docs/cursor.md ]; then
+  mkdir -p cli/templates/docs
+  cp .ai/docs/cursor.md cli/templates/docs/cursor.md
+fi
+
 echo "Synced .ai/skills/ + .ai/rules/ + .ai/hooks/ + .ai/agents/ + rebootstrap-skill + delta-skill + specify-skill → cli/templates/"

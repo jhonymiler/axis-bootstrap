@@ -73,3 +73,4 @@ ln -sfn ../.ai/skills          .github/skills
 echo
 echo "✓ symlinks installed. Verify:"
 echo "  ls -la AGENTS.md CLAUDE.md .claude .cursor .agents .github"
+echo "  bash scripts/validate-ide-links.sh   # optional local gate"

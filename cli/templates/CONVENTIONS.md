@@ -2,7 +2,16 @@
 
 ## Single Source of Truth
 
-All AI content lives in `.ai/`. IDE folders (`.claude/`, `.cursor/`, `.github/`) contain symlinks created by `setup-ide-links.sh`, and `.agents` points to `.ai/agents`.
+All AI content lives in `.ai/`. IDE folders (`.claude/`, `.cursor/`, `.github/`) contain symlinks or generated artifacts from `setup-ide-links.sh`. `.agents` points to `.ai/agents`.
+
+| Artifact | SSOT | Cursor delivery |
+|----------|------|-----------------|
+| Instructions | `.ai/INSTRUCTIONS.md` | `AGENTS.md` symlink |
+| Skills | `.ai/skills/` | `.cursor/skills` symlink |
+| Rules | `.ai/rules/*.md` | `.cursor/rules/*.mdc` **generated** — never edit `.mdc` directly |
+| Sub-agents | `.ai/agents/` | Task tool (Cursor) · `.claude/agents` symlink (Claude) |
+
+After editing `.ai/rules/`: `bash scripts/sync-cursor-rules.sh` · Local gate: `bash scripts/validate-ide-links.sh` · Details: [docs/cursor.md](docs/cursor.md)
 
 ## Progressive Disclosure
 

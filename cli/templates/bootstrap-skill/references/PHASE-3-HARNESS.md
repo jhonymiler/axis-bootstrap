@@ -269,8 +269,10 @@ Cursor reads `.cursor/rules/*.mdc` and `.cursor/skills/` for agent context. It d
 **What to generate:**
 
 1. **Skills symlink:** `.cursor/skills/` → `.ai/skills/`
-2. **Rules conversion:** run `scripts/sync-cursor-rules.sh` to generate `.cursor/rules/*.mdc` from `.ai/rules/*.md`
+2. **Rules conversion:** run `scripts/sync-cursor-rules.sh` to generate `.cursor/rules/*.mdc` from `.ai/rules/*.md` (never symlink `.md` — Cursor ignores it)
 3. **Root entries:** `AGENTS.md` + `CLAUDE.md` → `.ai/INSTRUCTIONS.md` (Cursor reads both natively)
+4. **Docs:** copy [TEMPLATES.md → docs/cursor.md](TEMPLATES.md#docscursormd) to `.ai/docs/cursor.md`; ensure `.ai/agents/README.md` exists (shipped by `axis init`)
+5. **Local validation:** `bash scripts/validate-ide-links.sh` (symlinks + `sync-cursor-rules.sh --check`) — dev gate only, not CI by default
 
 **Cursor `.mdc` frontmatter format** (from [official docs](https://cursor.com/docs/rules)):
 

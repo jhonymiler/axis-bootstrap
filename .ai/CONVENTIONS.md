@@ -102,8 +102,9 @@ ln -sfn ../.ai/agents .claude/agents   # native sub-agent registry (scanned recu
 
 # Cursor
 mkdir -p .cursor
-ln -sf ../.ai/rules .cursor/rules
-ln -sf ../.ai/skills .cursor/skills
+ln -sfn ../.ai/skills .cursor/skills
+# Rules: generate .mdc from .ai/rules/*.md (Cursor ignores plain .md)
+bash scripts/sync-cursor-rules.sh
 
 # Generic agents (.ai/agents holds ONLY agent definitions — no skills/rules/AGENTS.md
 # symlinks, which Claude would parse as bogus subagents). Root AGENTS.md is the entry point.
