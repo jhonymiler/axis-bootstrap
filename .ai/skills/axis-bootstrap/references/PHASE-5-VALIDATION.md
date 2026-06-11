@@ -64,19 +64,15 @@ This phase also runs in standalone mode when the user asks to **audit an existin
 [ ] setup-ide-links.sh exists and is idempotent
 [ ] Running setup-ide-links.sh twice generates no error
 [ ] ls -la shows expected targets in all symlinks
+[ ] If Cursor declared: .cursor/rules/*.mdc generated from .ai/rules/*.md (not hand-edited)
+[ ] If Cursor declared: docs/cursor.md exists; agents/README.md exists
+[ ] scripts/validate-ide-links.sh passes (local gate)
 ```
 
 **Concrete smoke test:**
 
 ```bash
-# Confirm that each symlink resolves without error
-for f in CLAUDE.md AGENTS.md .claude/CLAUDE.md .cursor/rules .cursor/skills; do
-  if [ -e "$f" ]; then
-    echo "OK: $f → $(readlink -f "$f")"
-  else
-    echo "MISSING: $f"
-  fi
-done
+bash scripts/validate-ide-links.sh
 ```
 
 ---

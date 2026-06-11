@@ -6,42 +6,53 @@
 # system. This script bridges the gap by reading .ai/rules/*.md (source of truth)
 # and generating properly formatted .mdc files.
 #
-# Frontmatter mapping:
-#   .ai/rules/         →  .cursor/rules/
-#   applyTo: "**"      →  (dropped — alwaysApply covers it)
-#   trigger: always     →  alwaysApply: true
-#   trigger: on-edit    →  alwaysApply: false + globs from applyTo
-#   trigger: on-stop    →  alwaysApply: false (description drives activation)
-#   description: "..."  →  description: "..." (passed through)
-#   globs: "..."        →  globs: "..." (passed through if present)
+# Usage:
+#   bash scripts/sync-cursor-rules.sh [source_dir] [target_dir]
+#   bash scripts/sync-cursor-rules.sh --check
+#   bash scripts/sync-cursor-rules.sh --check [source_dir] [target_dir]
 #
-# Usage: bash scripts/sync-cursor-rules.sh [source_dir] [target_dir]
-#   Defaults: source=.ai/rules  target=.cursor/rules
+# Defaults: source=.ai/rules  target=.cursor/rules
 set -euo pipefail
 
-SRC="${1:-.ai/rules}"
-DST="${2:-.cursor/rules}"
+CHECK_MODE=false
+POSITIONAL=()
+for arg in "$@"; do
+  if [ "$arg" = "--check" ] || [ "$arg" = "check" ]; then
+    CHECK_MODE=true
+  else
+    POSITIONAL+=("$arg")
+  fi
+done
+
+SRC="${POSITIONAL[0]:-.ai/rules}"
+ACTUAL_DST="${POSITIONAL[1]:-.cursor/rules}"
+DST="$ACTUAL_DST"
+TMP_DIR=""
+
+if [ "$CHECK_MODE" = true ]; then
+  TMP_DIR="$(mktemp -d)"
+  DST="$TMP_DIR"
+fi
 
 if [ ! -d "$SRC" ]; then
+  if [ "$CHECK_MODE" = true ]; then
+    rm -rf "$TMP_DIR"
+    echo "[sync-cursor-rules] No $SRC directory — skipping check." >&2
+    exit 0
+  fi
   echo "[sync-cursor-rules] No $SRC directory — skipping." >&2
   exit 0
 fi
 
 mkdir -p "$DST"
 
-converted=0
-for md_file in "$SRC"/*.md; do
-  [ -f "$md_file" ] || continue
+render_mdc() {
+  local md_file="$1"
+  local mdc_file="$2"
+  local base="$3"
 
-  base="$(basename "$md_file" .md)"
-  mdc_file="$DST/${base}.mdc"
-
-  description=""
-  always_apply="false"
-  globs_val=""
-  in_frontmatter=0
-  frontmatter_done=0
-  body=""
+  local description="" always_apply="false" globs_val=""
+  local in_frontmatter=0 frontmatter_done=0 body=""
 
   while IFS= read -r line || [ -n "$line" ]; do
     if [ "$frontmatter_done" -eq 1 ]; then
@@ -86,7 +97,6 @@ for md_file in "$SRC"/*.md; do
             globs_val="${globs_val## }"
             globs_val="${globs_val#\"}"
             globs_val="${globs_val%\"}"
-            # "**" means global — use alwaysApply instead of globs
             if [ "$globs_val" = "**" ]; then
               globs_val=""
             fi
@@ -96,12 +106,10 @@ for md_file in "$SRC"/*.md; do
     fi
   done < "$md_file"
 
-  # If no description found, generate one from the first heading
   if [ -z "$description" ]; then
     description="$(echo "$body" | grep -m1 '^# ' | sed 's/^# //' || echo "$base")"
   fi
 
-  # Write .mdc file
   {
     echo "---"
     echo "description: \"$description\""
@@ -114,10 +122,78 @@ for md_file in "$SRC"/*.md; do
       echo "globs: $globs_val"
     fi
     echo "---"
+    echo ""
+    echo "<!-- Generated from .ai/rules/${base}.md — edit the source, then run: bash scripts/sync-cursor-rules.sh -->"
+    echo ""
     printf '%s' "$body"
   } > "$mdc_file"
+}
 
-  converted=$((converted + 1))
+if [ "$CHECK_MODE" = false ]; then
+  echo "[sync-cursor-rules] Syncing $SRC → $ACTUAL_DST..."
+fi
+
+generated=()
+for md_file in "$SRC"/*.md; do
+  [ -f "$md_file" ] || continue
+  base="$(basename "$md_file" .md)"
+  render_mdc "$md_file" "$DST/${base}.mdc" "$base"
+  generated+=("${base}.mdc")
+  if [ "$CHECK_MODE" = false ]; then
+    echo "  .ai/rules/${base}.md → .cursor/rules/${base}.mdc"
+  fi
 done
 
-echo "[sync-cursor-rules] Generated $converted .mdc files in $DST"
+if [ "$CHECK_MODE" = true ]; then
+  mismatch=false
+  for gen in "${generated[@]}"; do
+    if [ ! -f "$ACTUAL_DST/$gen" ]; then
+      echo "MISSING: .cursor/rules/$gen (run bash scripts/sync-cursor-rules.sh)"
+      mismatch=true
+      continue
+    fi
+    if ! diff -q "$DST/$gen" "$ACTUAL_DST/$gen" >/dev/null 2>&1; then
+      echo "STALE: .cursor/rules/$gen differs from .ai/rules/${gen%.mdc}.md"
+      mismatch=true
+    fi
+  done
+  for existing in "$ACTUAL_DST"/*.mdc; do
+    [ -f "$existing" ] || continue
+    name="$(basename "$existing")"
+    found=false
+    for gen in "${generated[@]}"; do
+      if [ "$gen" = "$name" ]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ]; then
+      echo "EXTRA: .cursor/rules/$name has no .ai/rules source"
+      mismatch=true
+    fi
+  done
+  rm -rf "$TMP_DIR"
+  if [ "$mismatch" = true ]; then
+    exit 1
+  fi
+  echo "OK: .cursor/rules/*.mdc are in sync with .ai/rules/"
+  exit 0
+fi
+
+for existing in "$ACTUAL_DST"/*.mdc; do
+  [ -f "$existing" ] || continue
+  name="$(basename "$existing")"
+  found=false
+  for gen in "${generated[@]}"; do
+    if [ "$gen" = "$name" ]; then
+      found=true
+      break
+    fi
+  done
+  if [ "$found" = false ]; then
+    rm -f "$existing"
+    echo "  removed stale $name"
+  fi
+done
+
+echo "[sync-cursor-rules] Generated ${#generated[@]} .mdc files in $ACTUAL_DST"

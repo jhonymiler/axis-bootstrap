@@ -7,6 +7,35 @@ versioning: [SemVer](https://semver.org/) for the CLI.
 
 ---
 
+## [Unreleased]
+
+---
+
+## [2.4.0] — 2026-06-11
+
+> **Theme:** Cursor bootstrap parity — generated `.mdc` rules, local validation gate,
+> and integration docs shipped with every Cursor-enabled project.
+
+### Added
+
+- **`scripts/validate-ide-links.sh`** — local gate for IDE symlinks and Cursor
+  rule sync (not wired into CI by default).
+- **`sync-cursor-rules.sh --check`** — dry-run mode; exits non-zero when
+  `.cursor/rules/*.mdc` is stale vs `.ai/rules/*.md`.
+- **`cli/templates/docs/cursor.md`** — Cursor integration guide copied to
+  bootstrapped projects when Cursor is declared in Phase 1.
+- **`cli/templates/agents/README.md`** — subagent role index shipped with
+  `axis init`.
+
+### Changed
+
+- Bootstrap Phase 3/5 docs updated: Cursor rules are generated `.mdc` artifacts,
+  not symlinks; smoke test uses `validate-ide-links.sh`.
+- `CONVENTIONS.md` + `INSTRUCTIONS.md` templates include IDE integration table.
+- `setup-ide-links.sh` hints at `validate-ide-links.sh` after install.
+
+---
+
 ## [2.3.0] — 2026-06-09
 
 > **Theme:** sub-agents become a first-class, IDE-reflected artifact, and every

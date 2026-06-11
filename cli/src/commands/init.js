@@ -437,13 +437,20 @@ async function quickBootstrap(target, locale) {
   ensureDir(path.join(target, 'scripts'));
   const hooksSrc = path.join(TEMPLATES, 'hooks');
   if (fs.existsSync(hooksSrc)) {
-    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
+    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh', 'validate-ide-links.sh']) {
       const hSrc = path.join(hooksSrc, f);
       if (fs.existsSync(hSrc)) {
         const hDst = path.join(target, 'scripts', f);
         fs.copyFileSync(hSrc, hDst);
         fs.chmodSync(hDst, 0o755);
       }
+    }
+  }
+
+  if (ides.includes('cursor')) {
+    const cursorDocSrc = path.join(TEMPLATES, 'docs', 'cursor.md');
+    if (fs.existsSync(cursorDocSrc)) {
+      fs.copyFileSync(cursorDocSrc, path.join(target, '.ai', 'docs', 'cursor.md'));
     }
   }
 
@@ -595,7 +602,7 @@ function presetTargetFiles(target, cfg) {
   };
   walkAgents(agentsTplSrc, path.join(target, '.ai', 'agents'));
   // hooks and self-maint scripts
-  for (const f of ['post-spec-edit.sh', 'post-code-change.sh', '_lib.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
+  for (const f of ['post-spec-edit.sh', 'post-code-change.sh', '_lib.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh', 'validate-ide-links.sh']) {
     if (fs.existsSync(path.join(TEMPLATES, 'hooks', f))) {
       files.push(path.join(target, 'scripts', f));
     }
@@ -776,13 +783,20 @@ async function presetBootstrap(target, locale, cfg, flags) {
   ensureDir(path.join(target, 'scripts'));
   const hooksSrcP = path.join(TEMPLATES, 'hooks');
   if (fs.existsSync(hooksSrcP)) {
-    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh']) {
+    for (const f of ['_lib.sh', 'post-spec-edit.sh', 'post-code-change.sh', 'session-start.sh', 'stop.sh', 'constitutional-check.sh', 'validate-commit-msg.sh', 'sync-cursor-rules.sh', 'validate-ide-links.sh']) {
       const hSrc = path.join(hooksSrcP, f);
       if (fs.existsSync(hSrc)) {
         const hDst = path.join(target, 'scripts', f);
         fs.copyFileSync(hSrc, hDst);
         fs.chmodSync(hDst, 0o755);
       }
+    }
+  }
+
+  if (ides.includes('cursor')) {
+    const cursorDocSrcP = path.join(TEMPLATES, 'docs', 'cursor.md');
+    if (fs.existsSync(cursorDocSrcP)) {
+      fs.copyFileSync(cursorDocSrcP, path.join(target, '.ai', 'docs', 'cursor.md'));
     }
   }
 

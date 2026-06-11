@@ -135,6 +135,12 @@ if ! diff -q .ai/agents/debates/README.md \
   fail "agents/debates/README.md drift between live and CLI templates"
   sync_fail=1
 fi
+for f in sync-cursor-rules.sh validate-ide-links.sh; do
+  if ! diff -q "scripts/$f" "cli/templates/hooks/$f" > /dev/null 2>&1; then
+    fail "$f drift between scripts/ and cli/templates/hooks/"
+    sync_fail=1
+  fi
+done
 [ $sync_fail -eq 0 ] && pass "all skill + rule + hook + discoverer + specialist + rebootstrap + delta + specify files in sync — run scripts/sync-cli-templates.sh to fix drift"
 
 echo "[4/4] Root symlinks resolve"
@@ -165,6 +171,17 @@ if [ -d .ai/agents ]; then
   else
     fail ".claude/agents should be a symlink to ../.ai/agents (run setup-ide-links.sh)"
   fi
+fi
+
+echo "[5/5] IDE link + Cursor rule sync (local gate)"
+if [ -x scripts/validate-ide-links.sh ]; then
+  if bash scripts/validate-ide-links.sh; then
+    pass "validate-ide-links.sh"
+  else
+    fail "validate-ide-links.sh — run bash setup-ide-links.sh"
+  fi
+else
+  fail "scripts/validate-ide-links.sh missing or not executable"
 fi
 
 echo

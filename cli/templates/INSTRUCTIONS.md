@@ -45,8 +45,20 @@
 - Update spec before code when requirements change
 - See [CONVENTIONS.md](CONVENTIONS.md) for the maintenance protocol
 
+## IDE Integration
+
+| IDE | Entry point | Rules | Skills | Sub-agents |
+|-----|-------------|-------|--------|------------|
+| **Cursor** | `AGENTS.md` | `.cursor/rules/*.mdc` ← `.ai/rules/` | `.cursor/skills` symlink | Task tool + `.ai/agents/` |
+| **Claude Code** | `CLAUDE.md` | `.claude/rules` symlink | `.claude/skills` symlink | `.claude/agents` symlink |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | `.github/instructions/` | `.github/skills` symlink | — |
+
+Setup: `bash setup-ide-links.sh` · Cursor rule sync: `bash scripts/sync-cursor-rules.sh` · Details: [docs/cursor.md](docs/cursor.md)
+
 ## Key Documents
 
 - [CONVENTIONS.md](CONVENTIONS.md) — how to maintain this structure
 - [docs/STATE.md](docs/STATE.md) — current playbook
+- [docs/cursor.md](docs/cursor.md) — Cursor IDE integration (when declared in Phase 1)
+- [agents/README.md](agents/README.md) — subagent role prompts
 - [docs/canvases/](docs/canvases/) — REASONS Canvases (one per feature)
